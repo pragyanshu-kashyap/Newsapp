@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import NewsItem from "./NewsItem";
+import Spinner from "./Spinner";
 
 export class News extends Component {
   // articles = [];
@@ -12,15 +13,15 @@ export class News extends Component {
       // jaise hm functional based component mai state ka use krte the waise hi class based component mai bhi state ka use kr skte hai , wha hm pehle ek variable mai state ka use krte (ie. mode variable in textutils project) the aur uske baad us variable ko set krte the setmode function k help se , yha hm pehle ek variable "articles" ko "this.articles" bolke "article" variable state mai daal rhe hai jo ki state ka ek object hai
       articles: [],
       loading: false,
-      page: 1
+      page: 1,
     };
   }
 
   // componentDidMount is a lifecycle method which is called after the render method is called , it is used to fetch the data from the API
   async componentDidMount() {
     //console.log("cdm");
-    let url =
-      "https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=1&pageSize=20";
+    let url = `https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=1&pageSize=${this.props.pageSize}`;
+    this.setState({ loading: true });
     let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
 
     let parsedData = await data.json(); // json is a function which is used to convert the data into json format
@@ -28,13 +29,15 @@ export class News extends Component {
     this.setState({
       articles: parsedData.articles,
       totalResults: parsedData.totalResults,
-    }) // setState is a function which is used to set the state of the variable;
+      loading: false
+    }); // setState is a function which is used to set the state of the variable;
   }
 
   prevPage = async () => {
     let url = `https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
       this.state.page - 1
-    }&pageSize=20`;
+    }&pageSize=${this.props.pageSize}`;
+    this.setState({ loading: true });
 
     let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
 
@@ -42,34 +45,37 @@ export class News extends Component {
 
     this.setState({
       page: this.state.page - 1,
-      articles: parsedData.articles
-    })
-  }
+      articles: parsedData.articles,
+      loading: false
+    });
+  };
 
   nextPage = async () => {
-    if (this.state.page + 1 > Math.ceil(this.state.totalResults / 20)) {
-      // Math.ceil is a function which is used to round off the number to the nearest integer
-    } else {
+    if (!(this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize))) {
+      // Math.ceil is a function which is used to round off the number to the nearest intege
       let url = `https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
         this.state.page + 1
-      }&pageSize=20`;
+      }&pageSize=${this.props.pageSize}`;
+      this.setState({ loading: true });
       let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
       let parsedData = await data.json(); // json is a function which is used to convert the data into json format
       this.setState({
         page: this.state.page + 1,
         articles: parsedData.articles,
+        loading: false
       });
     }
-  }
+  };
 
   render() {
     // console.log("render");
     return (
       <div className="container my-3">
-        <h1>NewsMonkey - Top Headlines</h1>
+        <h1 className="text-center">NewsMonkey - Top Headlines</h1>
+        {this.state.loading && <Spinner/>}
 
         <div className="row">
-          {this.state.articles.map((element) => {
+          {!this.state.loading && this.state.articles.map((element) => {
             // map is a high order function which is used to iterate over each element of the array or object
             return (
               <div className="col-md-4" key={element.url}>
@@ -85,7 +91,7 @@ export class News extends Component {
                   NewsUrl={element.url}
                 />
               </div>
-            )
+            );
           })}
         </div>
         <div className="container d-flex justify-content-between">
@@ -99,6 +105,9 @@ export class News extends Component {
           </button>
 
           <button
+            disabled={
+              this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize)
+            }
             type="button"
             className="btn btn-outline-info"
             onClick={this.nextPage}
