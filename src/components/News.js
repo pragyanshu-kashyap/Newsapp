@@ -1,8 +1,21 @@
 import React, { Component } from "react";
 import NewsItem from "./NewsItem";
 import Spinner from "./Spinner";
+import PropTypes from 'prop-types';
 
 export class News extends Component {
+
+  static defaultProps = {
+    country: "us",
+    pageSize: 10,
+    category: "general"
+  };
+
+  static propTypes = {
+    country: PropTypes.string,
+    pageSize: PropTypes.number,
+    category: PropTypes.string
+  }
   // articles = [];
   // now we are fetching the data from the API so we don't need this static data in our "articles" array
 
@@ -10,7 +23,7 @@ export class News extends Component {
     super(); // This is necessary to call the (super class) parent constructor , without this we will get error
     // console.log("Hello I am a constructor from News component");
     this.state = {
-      // jaise hm functional based component mai state ka use krte the waise hi class based component mai bhi state ka use kr skte hai , wha hm pehle ek variable mai state ka use krte (ie. mode variable in textutils project) the aur uske baad us variable ko set krte the setmode function k help se , yha hm pehle ek variable "articles" ko "this.articles" bolke "article" variable state mai daal rhe hai jo ki state ka ek object hai
+      // jaise hm functional based component mai state ka use krte "useState Hook " k help se ,waise hi class based component mai bhi state ka use kr skte hai , wha hm pehle ek variable mai state ka use krte (ie. mode variable in textutils project) the aur uske baad us variable ko set krte the setmode function k help se , yha hm pehle ek variable "articles" ko "this.articles" bolke "article" variable state mai daal rhe hai jo ki state ka ek object hai
       articles: [],
       loading: false,
       page: 1,
@@ -20,7 +33,7 @@ export class News extends Component {
   // componentDidMount is a lifecycle method which is called after the render method is called , it is used to fetch the data from the API
   async componentDidMount() {
     //console.log("cdm");
-    let url = `https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=1&pageSize=${this.props.pageSize}`;
+    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=1&pageSize=${this.props.pageSize}`;
     this.setState({ loading: true });
     let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
 
@@ -34,7 +47,7 @@ export class News extends Component {
   }
 
   prevPage = async () => {
-    let url = `https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
+    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
       this.state.page - 1
     }&pageSize=${this.props.pageSize}`;
     this.setState({ loading: true });
@@ -53,7 +66,7 @@ export class News extends Component {
   nextPage = async () => {
     if (!(this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize))) {
       // Math.ceil is a function which is used to round off the number to the nearest intege
-      let url = `https://newsapi.org/v2/everything?q=global&from=2025-01-11&to=2025-01-11&sortBy=popularity&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
+      let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
         this.state.page + 1
       }&pageSize=${this.props.pageSize}`;
       this.setState({ loading: true });
@@ -106,7 +119,7 @@ export class News extends Component {
 
           <button
             disabled={
-              this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize)
+              (this.state.page >= Math.ceil(this.state.totalResults / this.props.pageSize))
             }
             type="button"
             className="btn btn-outline-info"
