@@ -83,10 +83,11 @@ export class News extends Component {
   render() {
     // console.log("render");
     return (
-      <div className="container my-3" >
-        <h1 className="text-center" style={{marginTop: "35px"}}>NewsMonkey - Top Headlines</h1>
-        {this.state.loading && <Spinner/>}
-
+      <div className="container my-3">
+        <h1 className="text-center" style={{ marginTop: "35px", marginBottom: "20px" }}>
+          NewsMonkey - Top Headlines
+        </h1>
+        {this.state.loading && <Spinner />}
         <div className="row">
           {!this.state.loading && this.state.articles.map((element) => {
             // map is a high order function which is used to iterate over each element of the array or object
@@ -107,7 +108,7 @@ export class News extends Component {
             );
           })}
         </div>
-        <div className="container d-flex justify-content-between">
+        <div className="container d-flex justify-content-between my-3">
           <button
             disabled={this.state.page <= 1}
             type="button"
