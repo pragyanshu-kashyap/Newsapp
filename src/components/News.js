@@ -32,56 +32,76 @@ export class News extends Component {
 
   // componentDidMount is a lifecycle method which is called after the render method is called , it is used to fetch the data from the API
   async componentDidMount() {
-    //console.log("cdm");
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=1&pageSize=${this.props.pageSize}`;
-    this.setState({ loading: true });
-    let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
-
-    let parsedData = await data.json(); // json is a function which is used to convert the data into json format
-    //console.log(parsedData)
-    this.setState({
-      articles: parsedData.articles,
-      totalResults: parsedData.totalResults,
-      loading: false
-    }); // setState is a function which is used to set the state of the variable;
+    try {
+      let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=1&pageSize=${this.props.pageSize}`;
+      this.setState({ loading: true });
+  
+      let data = await fetch(url);
+      if (!data.ok) {
+        throw new Error(`HTTP error! status: ${data.status}`);
+      }
+  
+      let parsedData = await data.json();
+      this.setState({
+        articles: parsedData.articles || [], // Ensure articles is an array
+        totalResults: parsedData.totalResults || 0,
+        loading: false,
+      });
+    } catch (error) {
+      console.error("Error fetching news:", error);
+      this.setState({ articles: [], loading: false }); // Set articles to an empty array on error
+    }
   }
-
+  
   prevPage = async () => {
-    let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
-      this.state.page - 1
-    }&pageSize=${this.props.pageSize}`;
-    this.setState({ loading: true });
-
-    let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
-
-    let parsedData = await data.json(); // json is a function which is used to convert the data into json format
-
-    this.setState({
-      page: this.state.page - 1,
-      articles: parsedData.articles,
-      loading: false
-    });
-  };
-
-  nextPage = async () => {
-    if (!(this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize))) {
-      // Math.ceil is a function which is used to round off the number to the nearest intege
+    try {
       let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=4b33e849bb6249678a44d5f5bf4db599&page=${
-        this.state.page + 1
+        this.state.page - 1
       }&pageSize=${this.props.pageSize}`;
       this.setState({ loading: true });
-      let data = await fetch(url); // fetch is a function which is used to fetch the data from the API
-      let parsedData = await data.json(); // json is a function which is used to convert the data into json format
+  
+      let data = await fetch(url);
+      if (!data.ok) {
+        throw new Error(`HTTP error! status: ${data.status}`);
+      }
+  
+      let parsedData = await data.json();
       this.setState({
-        page: this.state.page + 1,
-        articles: parsedData.articles,
-        loading: false
+        page: this.state.page - 1,
+        articles: parsedData.articles || [],
+        loading: false,
       });
+    } catch (error) {
+      console.error("Error fetching previous page:", error);
+      this.setState({ loading: false });
     }
   };
-
+  
+  nextPage = async () => {
+    try {
+      if (!(this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize))) {
+        let url = `http://localhost:5000/news?country=${this.props.country}&category=${this.props.category}&page=1&pageSize=${this.props.pageSize}`;
+        this.setState({ loading: true });
+  
+        let data = await fetch(url);
+        if (!data.ok) {
+          throw new Error(`HTTP error! status: ${data.status}`);
+        }
+  
+        let parsedData = await data.json();
+        this.setState({
+          page: this.state.page + 1,
+          articles: parsedData.articles || [],
+          loading: false,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching next page:", error);
+      this.setState({ loading: false });
+    }
+  };
+  
   render() {
-    // console.log("render");
     return (
       <div className="container my-3">
         <h1 className="text-center" style={{ marginTop: "35px", marginBottom: "20px" }}>
@@ -89,24 +109,20 @@ export class News extends Component {
         </h1>
         {this.state.loading && <Spinner />}
         <div className="row">
-          {!this.state.loading && this.state.articles.map((element) => {
-            // map is a high order function which is used to iterate over each element of the array or object
-            return (
-              <div className="col-md-4" key={element.url}>
-                {/*// gave md-4 to adjust 3 news in a row since grid is of 12 in Bootstrap*/}
-                <NewsItem
-                  title={element.title ? element.title.slice(0, 44) : " "} // slice is used to limit the number of characters to be displayed
-                  description={
-                    element.description ? element.description.slice(0, 88) : ""
-                  }
-                  // all left side variables are being passed as props to NewsItem component
-                  // and all right side variables after "elements." are being fetched from the "key" of the "articles" which is "element" here
-                  imageUrl={element.urlToImage}
-                  NewsUrl={element.url}
-                />
-              </div>
-            );
-          })}
+          {!this.state.loading &&
+            this.state.articles &&
+            this.state.articles.map((element) => {
+              return (
+                <div className="col-md-4" key={element.url}>
+                  <NewsItem
+                    title={element.title ? element.title.slice(0, 44) : " "}
+                    description={element.description ? element.description.slice(0, 88) : ""}
+                    imageUrl={element.urlToImage}
+                    NewsUrl={element.url}
+                  />
+                </div>
+              );
+            })}
         </div>
         <div className="container d-flex justify-content-between my-3">
           <button
@@ -117,10 +133,10 @@ export class News extends Component {
           >
             &larr; Previous
           </button>
-
+  
           <button
             disabled={
-              (this.state.page >= Math.ceil(this.state.totalResults / this.props.pageSize))
+              this.state.page >= Math.ceil(this.state.totalResults / this.props.pageSize)
             }
             type="button"
             className="btn btn-outline-info"
@@ -133,5 +149,4 @@ export class News extends Component {
     );
   }
 }
-
 export default News;
