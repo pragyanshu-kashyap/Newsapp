@@ -80,7 +80,7 @@ export class News extends Component {
   nextPage = async () => {
     try {
       if (!(this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize))) {
-        let url = `http://localhost:5000/news?country=${this.props.country}&category=${this.props.category}&page=1&pageSize=${this.props.pageSize}`;
+        let url = `https://your-proxy-server-url/news?country=${this.props.country}&category=${this.props.category}&page=1&pageSize=${this.props.pageSize}`;
         this.setState({ loading: true });
   
         let data = await fetch(url);
